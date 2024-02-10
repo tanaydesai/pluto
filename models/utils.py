@@ -1,10 +1,19 @@
 import torch
 import matplotlib.pyplot as plt
+from datasets import load_dataset
+from torch.utils.data import DataLoader, Dataset
 
+
+def load_data(config, device='cpu'):
+    dataset = load_dataset(config.name)
+    train_data = DataLoader(dataset["train"][:config.n]["text"], batch_size=config.batch_size, shuffle=True, pin_memory=True, pin_memory_device=device)
+    val_data = DataLoader(dataset["validation"][:]["text"], batch_size=config.batch_size, shuffle=True, pin_memory=True, pin_memory_device=device)
+
+    return train_data, val_data
 
 
 @torch.no_grad()
-def estimate_loss():
+def estimate_loss(model, train_data, val_data, encoder, eval_steps=50):
     out = {}
     model.eval()
     for split in ['train', 'val']:
@@ -12,7 +21,7 @@ def estimate_loss():
         for k in range(eval_steps):
             data = train_data if split == 'train' else val_data
             tokens = encoder(next(iter(data))[0])
-            logits, loss = model(tokens, tokens)
+            _, loss = model(tokens, tokens)
             losses[k] = loss.item()
         out[split] = losses.mean()
     model.train()

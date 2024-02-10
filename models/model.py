@@ -2,39 +2,14 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
-
-n = 1200000
-k = 7999
-vocab_size = k + 1
-batch_size = 64
-block_size = 256
-max_pos_n_embed = 2048
-lr = 2e-3
-n_layer = 8
-n_head = 16
-n_embed = 320
-dropout = 0.2
-epochs = 1
-beta1 = 0.9
-beta2 = 0.95
-
-max_steps = epochs * round(n / batch_size)
-eval_interval = 200
-eval_steps = 50
-steps = 0
-
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-torch.manual_seed(1337)
-
-
 class Head(nn.Module):
-  def __init__(self, head_size):
+  def __init__(self, config, head_size):
     super().__init__()
-    self.key = nn.Linear(n_embed, head_size, bias=False)
-    self.query = nn.Linear(n_embed, head_size, bias=False)
-    self.value = nn.Linear(n_embed, head_size, bias=False)
-    self.register_buffer('tril', torch.tril(torch.ones(block_size, block_size)))  # (T, T)
-    self.dropout = nn.Dropout(dropout)
+    self.key = nn.Linear(config.n_embed, head_size, bias=False)
+    self.query = nn.Linear(config.n_embed, head_size, bias=False)
+    self.value = nn.Linear(config.n_embed, head_size, bias=False)
+    self.register_buffer('tril', torch.tril(torch.ones(config.block_size, config.block_size)))  # (T, T)
+    self.dropout = nn.Dropout(config.dropout)
 
   def forward(self, x):
     B, T, C = x.shape
@@ -49,12 +24,12 @@ class Head(nn.Module):
     return out
   
 
-class MultiHead(nn.Module):
-  def __init__(self, num_heads, head_size):
+class MultiHeadAttention(nn.Module):
+  def __init__(self, config, head_size):
     super().__init__()
-    self.heads = nn.ModuleList([Head(head_size) for _ in range(num_heads)])
-    self.proj  = nn.Linear(head_size * num_heads, n_embed)
-    self.dropout = nn.Dropout(dropout)
+    self.heads = nn.ModuleList([Head(config, head_size) for _ in range(config.num_heads)])
+    self.proj  = nn.Linear(head_size * config.num_heads, config.n_embed)
+    self.dropout = nn.Dropout(config.dropout)
 
   def forward(self,x):
     out = torch.concat([h(x) for h in self.heads], dim=-1)
@@ -63,28 +38,27 @@ class MultiHead(nn.Module):
   
 
 class FeedForward(nn.Module):
-  def __init__(self, n_embed):
+  def __init__(self, config):
    super().__init__()
    self.layers = nn.Sequential(
-        nn.Linear(n_embed, 4 * n_embed),
+        nn.Linear(config.n_embed, 4 * config.n_embed),
         nn.GELU(),
-        nn.Linear(4 * n_embed, n_embed),
-        nn.Dropout(dropout),
+        nn.Linear(4 * config.n_embed, config.n_embed),
+        nn.Dropout(config.dropout),
     )
 
   def forward(self,x):
     return self.layers(x)
   
 
-
 class Block(nn.Module):
-  def __init__(self,n_embed, n_head):
+  def __init__(self, config):
     super().__init__()
-    head_size = n_embed // n_head
-    self.sa_heads = MultiHead(n_head, head_size)
-    self.ffwd = FeedForward(n_embed)
-    self.ln1 = nn.LayerNorm(n_embed)
-    self.ln2 = nn.LayerNorm(n_embed)
+    head_size = config.n_embed // config.n_head
+    self.sa_heads = MultiHeadAttention(config, head_size)
+    self.ffwd = FeedForward(config)
+    self.ln1 = nn.LayerNorm(config.n_embed)
+    self.ln2 = nn.LayerNorm(config.n_embed)
 
   def forward(self, x):
     x = x + self.sa_heads(self.ln1(x))
@@ -93,14 +67,16 @@ class Block(nn.Module):
   
 
 class GPT2(nn.Module):
-  def __init__(self):
+  def __init__(self, config, device='cpu'):
     super().__init__()
-    self.embedings = nn.Embedding(vocab_size, n_embed)
-    self.position_embedings = nn.Embedding(max_pos_n_embed, n_embed)
-    self.dropout = nn.Dropout(dropout)
-    self.blocks = nn.Sequential(*[Block(n_embed, n_head=n_head) for _ in range(n_layer)])
-    self.ln_final = nn.LayerNorm(n_embed)
-    self.lm_head = nn.Linear(n_embed, vocab_size)
+    self.device = device
+    self.block_size = config.block_size
+    self.embedings = nn.Embedding(config.vocab_size, config.n_embed)
+    self.position_embedings = nn.Embedding(config.max_pos_n_embed, config.n_embed)
+    self.dropout = nn.Dropout(config.dropout)
+    self.blocks = nn.Sequential(*[Block(config) for _ in range(config.n_layer)])
+    self.ln_final = nn.LayerNorm(config.n_embed)
+    self.lm_head = nn.Linear(config.n_embed, config.vocab_size)
 
   def get_parameters(self):
     return sum(p.numel() for p in self.parameters())
@@ -108,7 +84,7 @@ class GPT2(nn.Module):
   def forward(self, idx, targets=None):
     B, T = idx.shape
     token_embed = self.embedings(idx) # (B, T, C)
-    position_embed = self.position_embedings(torch.arange(T,  device=device)) # (T, C)
+    position_embed = self.position_embedings(torch.arange(T,  device=self.device)) # (T, C)
     x = token_embed + position_embed # (B, T, C)
     x = self.dropout(x) # (B, T, C)
     x = self.blocks(x) # (B, T, C)
@@ -125,7 +101,7 @@ class GPT2(nn.Module):
   def generate(self, idx, max_tokens, temperature=1.0, top_k=None):
     # idx is (B, T)
     for _ in range(max_tokens):
-      idx_cond = idx[:, -block_size:]
+      idx_cond = idx[:, -self.block_size:]
       logits, _ = self(idx_cond) # (B, T, C)
       logits = logits[:, -1, :]  / temperature # (B, C)
       if top_k is not None:
