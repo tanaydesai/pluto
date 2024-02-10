@@ -9,7 +9,7 @@ model_name= "gpt-1M"
 path = "model-1M.pth"
 model_config = config[model_name]
 
-tokenizer = Tokenizer(config.tokenizer, k=model_config["k"], file_path="tokens.json", device=device)
+tokenizer = Tokenizer(config.tokenizer, k=model_config.k, file_path="tokens.json", device=device)
 
 model = load_model(model_config, path, device=device)
 

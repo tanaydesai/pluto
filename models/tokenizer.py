@@ -7,7 +7,7 @@ class Tokenizer:
     self.k = k
     self.file_path = file_path
     self.device = device
-    self.tokenizer = AutoTokenizer.from_pretrained(config["name"])
+    self.tokenizer = AutoTokenizer.from_pretrained(config.name)
     self.tokenizer.pad_token = self.tokenizer.eos_token
     self.vocab_size = self.tokenizer.vocab_size if not self.k else self.k
     self.initialize()
