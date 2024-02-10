@@ -27,8 +27,8 @@ class Head(nn.Module):
 class MultiHeadAttention(nn.Module):
   def __init__(self, config, head_size):
     super().__init__()
-    self.heads = nn.ModuleList([Head(config, head_size) for _ in range(config.num_heads)])
-    self.proj  = nn.Linear(head_size * config.num_heads, config.n_embed)
+    self.heads = nn.ModuleList([Head(config, head_size) for _ in range(config.n_head)])
+    self.proj  = nn.Linear(head_size * config.n_head, config.n_embed)
     self.dropout = nn.Dropout(config.dropout)
 
   def forward(self,x):

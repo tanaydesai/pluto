@@ -4,10 +4,10 @@ from datasets import load_dataset
 from torch.utils.data import DataLoader, Dataset
 
 
-def load_data(config, device='cpu'):
+def load_data(config, batch_size, n, device='cpu'):
     dataset = load_dataset(config.name)
-    train_data = DataLoader(dataset["train"][:config.n]["text"], batch_size=config.batch_size, shuffle=True, pin_memory=True, pin_memory_device=device)
-    val_data = DataLoader(dataset["validation"][:]["text"], batch_size=config.batch_size, shuffle=True, pin_memory=True, pin_memory_device=device)
+    train_data = DataLoader(dataset["train"][:n]["text"], batch_size=batch_size, shuffle=True, pin_memory=True, pin_memory_device=device)
+    val_data = DataLoader(dataset["validation"][:]["text"], batch_size=batch_size, shuffle=True, pin_memory=True, pin_memory_device=device)
 
     return train_data, val_data
 

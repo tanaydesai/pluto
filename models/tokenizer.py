@@ -31,10 +31,11 @@ class Tokenizer:
     if self.k:
       self.tokens_used = sum([i for i in tokens_counts.values()][:self.k])
       self.top_k_tokens = [i for i in tokens_counts.keys()][:self.k]# We will only use top k tokens, others will be ignored
-      self.top_k_tokens_dict =  {token: index for index, token in enumerate(self.top_k_tokens)}
-      self.reversed_top_k_tokens_dict = {value: int(key) for key, value in self.top_k_tokens_dict.items()}  
       self.top_k_tokens.append("50256")
       self.vocab_size +=1
+      self.top_k_tokens_dict =  {token: index for index, token in enumerate(self.top_k_tokens)}
+      self.reversed_top_k_tokens_dict = {value: int(key) for key, value in self.top_k_tokens_dict.items()}  
+      
 
   def encoder(self, input, device="cpu", block_size=256):
     tokens = self.tokenizer(input , return_tensors='pt', padding="max_length", max_length=block_size, truncation=True)['input_ids'].to(device)

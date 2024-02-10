@@ -1,4 +1,4 @@
-config = {
+configdict= {
     "gpt-1M":{
         "batch_size": 64,
         "block_size": 256,
@@ -36,7 +36,18 @@ config = {
     },
     "data":{
         "name": "roneneldan/TinyStories",
-        "n": 1200000,
-        "batch_size": 64,
     },
 }
+
+class Config:
+    def __init__(self, dictionary):
+        for key, value in dictionary.items():
+            if isinstance(value, dict):
+                setattr(self, key, Config(value))
+            else:
+                setattr(self, key, value)
+
+    def __getitem__(self, key):
+        return self.__dict__[key]
+
+config = Config(configdict)
