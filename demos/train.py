@@ -1,9 +1,9 @@
-from model import GPT2
+from models.model import GPT2
 import torch
-from train import Trainer
-from tokenizer import Tokenizer
-from utils import *
-from config import config
+from models.train import Trainer
+from models.tokenizer import Tokenizer
+from models.utils import *
+from models.config import config
 
 # Testing
 # Adding comments

@@ -1,8 +1,8 @@
-from model import GPT2
+from models.model import GPT2
 import torch
-from tokenizer import Tokenizer
-from config import config
-from utils import *
+from models.tokenizer import Tokenizer
+from models.config import config
+from models.utils import *
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 model_name= "gpt-1M"
