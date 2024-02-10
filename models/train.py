@@ -1,14 +1,16 @@
 from utils import *
 
 class Trainer:
-  def __init__(self, model, optimizer, train_data, val_data, encoder):
+  def __init__(self, config, model, optimizer, train_data, val_data, encoder):
+    self.config = config
     self.model = model
     self.optimizer = optimizer
     self.train_data = train_data
     self.val_data = val_data
     self.encoder = encoder
 
-  def train(self, epochs, max_steps, eval_interval=200, eval_steps=50):
+  def train(self, epochs, eval_interval=200, eval_steps=50):
+    max_steps = epochs * round(self.config.n / self.config.batch_size)
     steps = 0
     tracked_losses = []
 
@@ -20,7 +22,7 @@ class Trainer:
           tracked_losses.append(losses)
           print(f"Epoch: {epoch + 1}/{epochs} | Step: {steps}/{max_steps} | Train loss: {losses['train']:.4f} | Val loss: {losses['val']:.4f}")
 
-        tokens = self.encoder(batch)
+        tokens = self.encoder(batch, max_length=self.config.batch_size, padding="max_length", truncation=True)
         _, loss = self.model(tokens, tokens)
         self.optimizer.zero_grad(set_to_none=True)
         loss.backward()

@@ -2,7 +2,13 @@ import torch
 import matplotlib.pyplot as plt
 from datasets import load_dataset
 from torch.utils.data import DataLoader, Dataset
+from model import GPT2
 
+
+def load_model(config, path, device='cpu'):
+    model = GPT2(config, device=device)
+    model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+    return model
 
 def load_data(config, batch_size, n, device='cpu'):
     dataset = load_dataset(config.name)
@@ -10,7 +16,6 @@ def load_data(config, batch_size, n, device='cpu'):
     val_data = DataLoader(dataset["validation"][:]["text"], batch_size=batch_size, shuffle=True, pin_memory=True, pin_memory_device=device)
 
     return train_data, val_data
-
 
 @torch.no_grad()
 def estimate_loss(model, train_data, val_data, encoder, eval_steps=50):
@@ -20,7 +25,7 @@ def estimate_loss(model, train_data, val_data, encoder, eval_steps=50):
         losses = torch.zeros(eval_steps)
         for k in range(eval_steps):
             data = train_data if split == 'train' else val_data
-            tokens = encoder(next(iter(data))[0])
+            tokens = encoder(next(iter(data))[0], max_length=model.batch_size, padding="max_length", truncation=True)
             _, loss = model(tokens, tokens)
             losses[k] = loss.item()
         out[split] = losses.mean()

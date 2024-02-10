@@ -70,6 +70,7 @@ class GPT2(nn.Module):
   def __init__(self, config, device='cpu'):
     super().__init__()
     self.device = device
+    self.to(device)
     self.block_size = config.block_size
     self.embedings = nn.Embedding(config.vocab_size, config.n_embed)
     self.position_embedings = nn.Embedding(config.max_pos_n_embed, config.n_embed)
@@ -80,6 +81,9 @@ class GPT2(nn.Module):
 
   def get_parameters(self):
     return sum(p.numel() for p in self.parameters())
+
+  def save(self, path):
+    torch.save(self.state_dict(), path)
 
   def forward(self, idx, targets=None):
     B, T = idx.shape

@@ -3,9 +3,10 @@ from transformers import AutoTokenizer
 import json
 
 class Tokenizer:
-  def __init__(self, config, k=None, file_path=None):
+  def __init__(self, config, k=None, file_path=None, device="cpu"):
     self.k = k
     self.file_path = file_path
+    self.device = device
     self.tokenizer = AutoTokenizer.from_pretrained(config["name"])
     self.tokenizer.pad_token = self.tokenizer.eos_token
     self.vocab_size = self.tokenizer.vocab_size if not self.k else self.k
@@ -37,11 +38,11 @@ class Tokenizer:
       self.reversed_top_k_tokens_dict = {value: int(key) for key, value in self.top_k_tokens_dict.items()}  
       
 
-  def encoder(self, input, device="cpu", block_size=256):
-    tokens = self.tokenizer(input , return_tensors='pt', padding="max_length", max_length=block_size, truncation=True)['input_ids'].to(device)
+  def encoder(self, input, padding=False, max_length=256, truncation=False):
+    tokens = self.tokenizer(input , return_tensors='pt', padding=padding, max_length=max_length, truncation=truncation)['input_ids'].to(self.device)
     
     if self.k:
-      tokens = torch.tensor([self.top_k_tokens_dict.get(str(token.item()), self.top_k_tokens_dict["50256"]) for token in tokens.view(-1)], device=device).view(tokens.shape)
+      tokens = torch.tensor([self.top_k_tokens_dict.get(str(token.item()), self.top_k_tokens_dict["50256"]) for token in tokens.view(-1)], device=self.device).view(tokens.shape)
 
     return tokens
 
