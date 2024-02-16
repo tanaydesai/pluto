@@ -1,6 +1,7 @@
 import torch
 import matplotlib.pyplot as plt
 from datasets import load_dataset
+import re
 from torch.utils.data import DataLoader
 from model import GPT2
 
@@ -18,6 +19,12 @@ def load_data(config, batch_size, n, device='cpu'):
     val_data = DataLoader(dataset["validation"][:n]["text"], batch_size=batch_size, shuffle=True, pin_memory=True, pin_memory_device=device)
 
     return train_data, val_data
+
+
+def clean_string(input_string):
+    cleaned_string = re.sub(r'[^\w\s.,]', '', input_string)
+    cleaned_string = cleaned_string.replace('\n', '')
+    return cleaned_string
 
 @torch.no_grad()
 def estimate_loss(model, train_data, val_data, encoder, eval_steps=50):
