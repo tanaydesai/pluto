@@ -5,9 +5,8 @@ from models.tokenizer import Tokenizer
 from models.utils import *
 from models.config import config
 
-# Testing
+# Testing, Cleaning outputs
 # Adding comments
-# Making readme
 # Renaming, x post, etc.
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -18,6 +17,7 @@ train_data, val_data = load_data(config.data, model_config.batch_size, model_con
 tokenizer = Tokenizer(config.tokenizer, k=model_config.k, file_path="tokens.json", device=device)
 
 model = GPT2(model_config, device=device)
+model = model.to(device)
 optim = torch.optim.Adam(model.parameters(), lr=model_config.lr)
 
 trainer = Trainer(model_config, model, optim, train_data, val_data, tokenizer.encoder)

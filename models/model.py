@@ -70,7 +70,6 @@ class GPT2(nn.Module):
   def __init__(self, config, device='cpu'):
     super().__init__()
     self.device = device
-    self.to(device)
     self.block_size = config.block_size
     self.embedings = nn.Embedding(config.vocab_size, config.n_embed)
     self.position_embedings = nn.Embedding(config.max_pos_n_embed, config.n_embed)

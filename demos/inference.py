@@ -13,11 +13,11 @@ tokenizer = Tokenizer(config.tokenizer, k=model_config.k, file_path="tokens.json
 
 model = load_model(model_config, path, device=device)
 
-prompt1 = torch.zeros((1, 1), dtype=torch.long, device=device)
-prompt2 = "Elon told his mom"
+unconditional = torch.zeros((1, 1), dtype=torch.long, device=device)
+prompt = "Elon told his mom"
 
-output1 = model.generate(prompt1, max_tokens=200, temperature=1, top_k=None)
-output2 = model.generate(tokenizer.encoder(prompt2), max_tokens=200, temperature=1, top_k=None)
+output1 = model.generate(unconditional, max_tokens=200, temperature=1, top_k=None)
+output2 = model.generate(tokenizer.encoder(prompt), max_tokens=200, temperature=1, top_k=None)
 
 print(tokenizer.decoder(output1)[0])
 print(tokenizer.decoder(output2)[0])

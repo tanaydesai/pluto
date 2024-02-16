@@ -22,7 +22,7 @@ class Trainer:
           tracked_losses.append(losses)
           print(f"Epoch: {epoch + 1}/{epochs} | Step: {steps}/{max_steps} | Train loss: {losses['train']:.4f} | Val loss: {losses['val']:.4f}")
 
-        tokens = self.encoder(batch, max_length=self.config.batch_size, padding="max_length", truncation=True)
+        tokens = self.encoder(batch, max_length=self.config.block_size, padding="max_length", truncation=True)
         _, loss = self.model(tokens, tokens)
         self.optimizer.zero_grad(set_to_none=True)
         loss.backward()
