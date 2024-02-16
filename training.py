@@ -7,7 +7,6 @@ from tokenizer import Tokenizer
 from utils import *
 from config import config
 
-# Adding models
 # Renaming, x post, etc.
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -23,7 +22,7 @@ optim = torch.optim.Adam(model.parameters(), lr=model_config.lr)
 
 trainer = Trainer(model_config, model, optim, train_data, val_data, tokenizer.encoder)
 tracked_losses = trainer.train(epochs=1, eval_interval=200, eval_steps=50)
-model.save("model-1M.pth")
+model.save("model-1M.bin")
 
 print(tokenizer.get_config())
 print(model.get_parameters())
