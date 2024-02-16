@@ -20,9 +20,9 @@ def load_data(config, batch_size, n, device='cpu'):
 
     return train_data, val_data
 
-
 def clean_string(input_string):
     cleaned_string = re.sub(r'[^\w\s.,]', '', input_string)
+    cleaned_string = re.sub(r'\s+', ' ', cleaned_string)
     cleaned_string = cleaned_string.replace('\n', '')
     return cleaned_string
 

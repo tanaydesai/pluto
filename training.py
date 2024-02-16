@@ -1,5 +1,5 @@
 import sys
-sys.path.append('../models') 
+sys.path.append('./models') 
 from model import GPT2
 import torch
 from train import Trainer
@@ -7,7 +7,7 @@ from tokenizer import Tokenizer
 from utils import *
 from config import config
 
-# Adding comments, models
+# Adding models
 # Renaming, x post, etc.
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -15,7 +15,7 @@ model_name= "gpt-1M"
 model_config = config[model_name]
 
 train_data, val_data = load_data(config.data, model_config.batch_size, model_config["n"], device=device)
-tokenizer = Tokenizer(config.tokenizer, k=model_config.k, file_path="../tokens.json", device=device)
+tokenizer = Tokenizer(config.tokenizer, k=model_config.k, file_path="tokens.json", device=device)
 
 model = GPT2(model_config, device=device)
 model = model.to(device)
@@ -26,4 +26,5 @@ tracked_losses = trainer.train(epochs=1, eval_interval=200, eval_steps=50)
 model.save("model-1M.pth")
 
 print(tokenizer.get_config())
+print(model.get_parameters())
 plot_losses(tracked_losses)

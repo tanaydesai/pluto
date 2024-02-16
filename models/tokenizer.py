@@ -25,17 +25,18 @@ class Tokenizer:
 
   def initialize(self):
     with open(self.file_path, 'r') as file:
+      # Already sorted E.g {"and":5, "the": 3, "to": 2, "a": 1, "of": 1}
       tokens_counts = json.load(file)
 
-    self.total_tokens = sum(tokens_counts.values()) # Already sorted
+    self.total_tokens = sum(tokens_counts.values())
 
     if self.k:
       self.tokens_used = sum([i for i in tokens_counts.values()][:self.k])
       self.top_k_tokens = [i for i in tokens_counts.keys()][:self.k]# We will only use top k tokens, others will be ignored
-      self.top_k_tokens.append("50256")
+      self.top_k_tokens.append("50256") # End of text token
       self.vocab_size +=1
       self.top_k_tokens_dict =  {token: index for index, token in enumerate(self.top_k_tokens)}
-      self.reversed_top_k_tokens_dict = {value: int(key) for key, value in self.top_k_tokens_dict.items()}  
+      self.reversed_top_k_tokens_dict = {value: int(key) for key, value in self.top_k_tokens_dict.items()}  # This is for decoding to reverse map and jump back to original 50k vocab
       
 
   def encoder(self, input, padding=False, max_length=256, truncation=False):
