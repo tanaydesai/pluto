@@ -7,8 +7,6 @@ from tokenizer import Tokenizer
 from utils import *
 from config import config
 
-# x post, etc.
-
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 model_name= "gpt-1M"
 model_config = config[model_name]
